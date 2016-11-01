@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="Theme.Gardener" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
+        <item name="android:dialogTheme">@style/DialogTheme</item>
+    <item name="android:typeface">sans</item>
+        <item name="android:activatedBackgroundIndicator">@drawable/activated_background
+        </item>
+
+    </style>
+
+    <style name="FixWhite" parent="Theme.Gardener">
+        <item name="android:windowDisablePreview">true</item>
+    </style>
+
+ <style name="Theme.Gardener.Button" parent="Theme.Gardener">
+        <item name="android:background">@drawable/btn_rect_default</item>
+        <item name="android:textColor">#ffffff</item>
+    </style>
+
+
+</resources>
