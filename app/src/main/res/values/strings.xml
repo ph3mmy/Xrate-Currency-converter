@@ -2,8 +2,96 @@
     <string name="app_name">Xrate Currency Converter</string>
     <string name="action_settings">Settings</string>
 
-<!-- TODO: Remove or change this placeholder text -->
+    <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="action_refresh">Refresh</string>
     <string name="action_check_db">Check Db</string>
+
+    <string name="sync_account_type">com.jcedar.xratecurrencyconverter</string>
+    <string name="content_authority">com.jcedar.xratecurrencyconverter.provider</string>
+    <string name="title_activity_settings">Settings</string>
+
+    <!-- Strings related to Settings -->
+
+    <!-- Example General settings -->
+    <string name="pref_header_general">General</string>
+
+    <string name="pref_title_social_recommendations">Enable social recommendations</string>
+    <string name="pref_description_social_recommendations">Recommendations for people to contact
+        based on your message history
+    </string>
+
+    <string name="pref_title_display_name">Display name</string>
+    <string name="pref_default_display_name">John Smith</string>
+
+    <string name="pref_title_add_friends_to_messages">Add friends to messages</string>
+    <string-array name="pref_example_list_titles">
+        <item>Always</item>
+        <item>When possible</item>
+        <item>Never</item>
+    </string-array>
+    <string-array name="pref_example_list_values">
+        <item>1</item>
+        <item>0</item>
+        <item>-1</item>
+    </string-array>
+
+    <!-- Example settings for Data & Sync -->
+    <string name="pref_header_data_sync">Data &amp; sync</string>
+
+    <string name="pref_title_sync_frequency">Sync frequency</string>
+    <string-array name="pref_sync_frequency_titles">
+        <item>1 hour</item>
+        <item>3 hours</item>
+        <item>6 hours</item>
+        <item>24 hours</item>
+    </string-array>
+    <string-array name="pref_sync_frequency_values">
+        <item>1</item>
+        <item>3</item>
+        <item>6</item>
+        <item>24</item>
+    </string-array>
+
+    <!--currency arrays-->
+    <string-array name="pref_currency_array">
+        <item>AED</item>
+        <item>AFN</item>
+        <item>GBP</item>
+        <item>NGN</item>
+        <item>EUR</item>
+        <item>XAF</item>
+    </string-array>
+
+    <string-array name="pref_theme">
+        <item>Light</item>
+        <item>Dark</item>
+    </string-array>
+
+    <string name="pref_title_system_sync_settings">System sync settings</string>
+
+    <!-- Example settings for Notifications -->
+    <string name="pref_header_notifications">Notifications</string>
+
+    <string name="pref_title_new_message_notifications">New message notifications</string>
+
+    <string name="pref_title_ringtone">Ringtone</string>
+    <string name="pref_ringtone_silent">Silent</string>
+
+    <string name="pref_title_vibrate">Vibrate</string>
+    <string name="pref_key_auto_update">pref_auto_update</string>
+    <string name="pref_key_frequency">pref_frequency</string>
+    <string name="pref_key_wifi_only">pref_wifi_only</string>
+    <string name="pref_categ_update">Update Settings</string>
+    <string name="pref_categ_display">Display Settings</string>
+    <string name="pref_key_currency">pref_currency</string>
+    <string name="pref_key_theme">pref_theme</string>
+    <string name="pref_frequency_default">1</string>
+    <string name="pref_currency_default">USD</string>
+    <string name="top_rate_tv">1 AFN = 0.10 USD</string>
+    <string name="inv_rate_tv">1 USD = 10 AFN</string>
+    <string name="currency_name_tv">Dollars</string>
+    <string name="symbol_tv">afn</string>
+    <string name="flag_description">Currency Country flag</string>
+    <string name="action_search">Search</string>
 </resources>

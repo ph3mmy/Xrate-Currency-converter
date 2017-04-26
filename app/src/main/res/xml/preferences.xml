@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <PreferenceCategory android:title="@string/pref_categ_update" />
+    <CheckBoxPreference
+        android:id="@+id/pref_auto_update"
+        android:defaultValue="true"
+        android:key="@string/pref_key_auto_update"
+        android:summary="Download latest rates automatically"
+        android:title="Automatic Update" />
+
+    <ListPreference
+        android:defaultValue="@string/pref_frequency_default"
+        android:entries="@array/pref_sync_frequency_titles"
+        android:entryValues="@array/pref_sync_frequency_values"
+        android:key="@string/pref_key_frequency"
+        android:summary="Set Auto-Update frequency"
+        android:title="Update Frequency" />
+
+    <CheckBoxPreference
+        android:defaultValue="false"
+        android:key="@string/pref_key_wifi_only"
+        android:summary="Update via WiFi only"
+        android:title="WiFi Mode" />
+
+    <PreferenceCategory android:title="@string/pref_categ_display" />
+
+
+    <com.jcedar.xratecurrencyconverter.helper.MyCustomListPreference
+        android:key="@string/pref_key_currency"
+        android:title="Base Currency"
+        android:summary="Set Base Currency" />
+
+<!--
+    <ListPreference
+        android:defaultValue="@string/pref_currency_default"
+        android:entries="@array/pref_currency_array"
+        android:entryValues="@array/pref_currency_array"
+        android:key="@string/pref_key_currency"
+        android:summary="Set Base Currency"
+        android:title="Base Currency" />-->
+
+    <ListPreference
+        android:defaultValue="Light"
+        android:entries="@array/pref_theme"
+        android:entryValues="@array/pref_theme"
+        android:key="@string/pref_key_theme"
+        android:summary="Set Display theme"
+        android:title="Theme" />
+
+    <PreferenceCategory android:title="About" />
+
+    <Preference
+        android:summary="1.0"
+        android:title="Version" />
+
+    <Preference
+        android:summary="JCedar Inc"
+        android:title="Developer" />
+
+
+</PreferenceScreen>

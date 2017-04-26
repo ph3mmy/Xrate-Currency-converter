@@ -5,16 +5,45 @@
     tools:context="com.jcedar.xratecurrencyconverter.fragment.RateFragment">
 
     <!-- TODO: Update blank fragment layout -->
-<!--    <TextView
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:text="@string/hello_blank_fragment" />-->
+        android:orientation="vertical">
 
-    <ListView
-        android:id="@android:id/list"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:background="@color/time_bg"
+            android:gravity="start"
+            android:padding="5dp">
 
-    </ListView>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Last Updated: " />
 
+            <TextView
+                android:id="@+id/tv_time_stamp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="right"
+                android:textColor="@color/colorPrimary"
+                android:text=" " />
+        </LinearLayout>
+        <!--   <TextView
+        android:id="@+id/tv_error"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text=""
+        android:gravity="center"
+        android:textSize="?android:textAppearanceLarge"
+        android:textColor="#999999"
+        android:visibility="gone"
+        android:layout_gravity="center_vertical|center_horizontal"/>-->
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/rate_recyclerview"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+    </LinearLayout>
 </FrameLayout>

@@ -1,36 +1,34 @@
 package com.jcedar.xratecurrencyconverter.io;
 
+import android.app.ProgressDialog;
 import android.content.ContentProviderOperation;
-import android.content.ContentUris;
-import android.content.ContentValues;
+import android.content.ContentResolver;
 import android.content.Context;
+import android.content.OperationApplicationException;
+import android.content.SharedPreferences;
 import android.database.Cursor;
-import android.database.DatabaseUtils;
-import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
+import android.os.RemoteException;
+import android.preference.PreferenceManager;
 import android.util.Log;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
-import com.jcedar.xratecurrencyconverter.adapter.RateListAdapter;
-import com.jcedar.xratecurrencyconverter.fragment.RateFragment;
 import com.jcedar.xratecurrencyconverter.helper.AppSingleton;
+import com.jcedar.xratecurrencyconverter.helper.DataUtils;
+import com.jcedar.xratecurrencyconverter.helper.FormatUtils;
 import com.jcedar.xratecurrencyconverter.helper.Lists;
-import com.jcedar.xratecurrencyconverter.model.CurrencyModel;
 import com.jcedar.xratecurrencyconverter.provider.CurrencyContract;
-import com.jcedar.xratecurrencyconverter.provider.DataProvider;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.IOException;
-import java.text.DecimalFormat;
 import java.util.ArrayList;
-import java.util.List;
-import java.util.Vector;
+import java.util.HashMap;
 
 /**
  * Created by OLUWAPHEMMY on 10/30/2016.
@@ -45,24 +43,38 @@ public class FetchCurrencyHandler {
     public static final String KEY_CURRENCY_NAME_URL= "http://apilayer.net/api/list?access_key=3b0cacb7e3ade580c18a3a26f23427fd";
     public static final String KEY_CURRENCY_URL= "http://www.apilayer.net/api/live?access_key=3b0cacb7e3ade580c18a3a26f23427fd";
     public static final String KEY_FLAG_URL= "http://caches.space/flags/";
+    private static final String KEY_CURRENCY_TIMESTAMP = "timestamp";
     private static Context mContext;
+    private static ProgressDialog mDialog;
+    static HashMap<String, String> baseSixtyFour = new HashMap<>();
 
-    static String[] fromFetch;
-
-    public static void fetchCurrencyFromJson (final Context context){
+    public static void fetchCurrencyFromJson (final Context context) {
         mContext = context;
+        mDialog = new ProgressDialog(context);
+        mDialog.setMessage("Updating Rate");
+        mDialog.setTitle("Please wait");
+        mDialog.setIndeterminate(true);
+        mDialog.setCancelable(false);
+        mDialog.show();
+        fetchCurrencyVolley(context);
+    }
 
+        private static void fetchCurrencyVolley (final Context context) {
         String url = KEY_CURRENCY_URL;
         JsonObjectRequest req = new JsonObjectRequest(url, null, new Response.Listener<JSONObject>() {
             @Override
             public void onResponse(JSONObject jsonObject) {
-                getCurrencySymbol(jsonObject);
+                getCurrencySymbol(jsonObject, context);
+                DataUtils.setCurrencyFirstRun(false, context);
+                fetchCurrencyNamesVolley(context);
             }
 
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError volleyError) {
-
+                if (mDialog != null) {
+                    mDialog.dismiss();
+                }
                 Toast.makeText(context, "An error occured : " + volleyError, Toast.LENGTH_LONG).show();
             }
         });
@@ -71,161 +83,149 @@ public class FetchCurrencyHandler {
     }
 
 
-    public static   void currencyNamesResult(final Context context) {
+    public static   void fetchCurrencyNamesVolley(final Context context) {
         mContext = context;
-
         String url = KEY_CURRENCY_NAME_URL;
         JsonObjectRequest reqName = new JsonObjectRequest(url, null, new Response.Listener<JSONObject>() {
             @Override
             public void onResponse(JSONObject jsonObject) {
-                getCurrencyName(jsonObject);
+                getCurrencyName(jsonObject, context);
+                DataUtils.setCurrencyNameFirstRun(false, context);
             }
 
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError volleyError) {
 
+                if (mDialog.isShowing()){
+                    mDialog.dismiss();
+                }
                 Toast.makeText(context, "An error occured : " + volleyError, Toast.LENGTH_LONG).show();
             }
         });
         AppSingleton.getInstance(context).addToRequestQueue(reqName, TAG);
     }
 
-    public static void getCurrencyName(JSONObject currency){
-
+    public static void getCurrencyName(JSONObject currency, Context context){
         try {
             JSONObject curr = currency.getJSONObject("currencies");
-//            currencyName = new String[curr.length()];
-            for (int i = 0; i < curr.length(); i++){
-                JSONArray nameArray = curr.names();
-                String rawCurrency = nameArray.get(i).toString();
-                String nameObj = curr.getString(rawCurrency);
-
-                Log.e(TAG, " Gotten Names: " + nameObj);
-                insertCurrencyNameInDb(nameObj, rawCurrency);
+            if (curr == null) {
+                return;
             }
-
+            ArrayList<ContentProviderOperation> operations = parseCurrencyName(curr);
+            if (operations.size() > 0) {
+                ContentResolver resolver = context.getContentResolver();
+                resolver.applyBatch(CurrencyContract.CONTENT_AUTHORITY, operations);
+            }
+            DataUtils.setCurrencyFirstRun(false, context);/*
+            if (mDialog != null && mDialog.isShowing()){
+                mDialog.dismiss();
+            }*/
         }catch (Exception e){
             Log.e(TAG, "getCurrency error " + e);
         }
     }
 
-
-    public static void getCurrencySymbol(JSONObject symbol){
+    private static ArrayList<ContentProviderOperation> parseCurrencyName  (JSONObject curr){
+        ArrayList<ContentProviderOperation> batch = Lists.newArrayList();
+        HashMap<String, String> codes = new HashMap<>();
         try {
-            JSONObject quo = symbol.getJSONObject(KEY_CURRENCY_SYMBOL);
-            Vector<ContentValues> cVVector = new Vector<ContentValues>(quo.length());
-            for (int i = 0; i < quo.length(); i++) {
-//                JSONObject mObject = symbol.getJSONObject(i);
+            for (int i = 0; i < curr.length(); i++) {
+                JSONArray nameArray = curr.names();
+                String rawCurrency = nameArray.get(i).toString();
+                String nameObj = curr.getString(rawCurrency);
 
-                JSONArray mObject = quo.names();
-                String rawSymbol = mObject.getString(i);
-                String currencySymbol  = rawSymbol.substring(rawSymbol.length() - 3);
-                String baseCurrencySymbol  = rawSymbol.substring(0,3);
-                String rawRate  = quo.getString(rawSymbol);
-                String currencyRate = String.valueOf(formatCurrencyDp(rawRate));
-                String currencyCode  = rawSymbol.substring(3, 5);
-                String inverseValue  = String.valueOf(invertedRate(rawRate));
+                codes.put(rawCurrency, nameObj);
 
-//                for (String s : currencySymbol){
+                Uri uri = CurrencyContract.addCallerIsSyncAdapterParameter(CurrencyContract.CurrencyName.CONTENT_URI);
+                ContentProviderOperation.Builder builder = ContentProviderOperation
+                        .newInsert(uri)
+                        .withValue(CurrencyContract.CurrencyName.CURRENCY_SYMBOL, rawCurrency)
+                        .withValue(CurrencyContract.CurrencyName.CURRENCY_NAME, nameObj);
 
-                insertCurrencyInDatabase(currencySymbol, currencyCode, baseCurrencySymbol, currencyRate, inverseValue);
+                batch.add(builder.build());
             }
-        } catch (JSONException e) {
+                SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(mContext);
+                SharedPreferences.Editor editor = sp.edit();
+                for (String s : codes.keySet()) {
+                    editor.putString(s, codes.get(s));
+                }
+                editor.apply();
+
+//                insertCurrencyNameInDb(nameObj, rawCurrency);
+
+        } catch (Exception e){
             e.printStackTrace();
         }
+        return batch;
     }
 
-    private static void insertCurrencyNameInDb(String currencyName, String currencySymbol){
-
-        ArrayList<ContentValues> mValue = new ArrayList<ContentValues>();
-        //first check if currency with this name already exist
-        Cursor cursor = mContext.getContentResolver().query(
-                CurrencyContract.CurrencyName.CONTENT_URI,
-                new String[] {CurrencyContract.CurrencyName._ID},
-                CurrencyContract.CurrencyName.CURRENCY_SYMBOL+"=?",
-                new String[] {currencyName},
-                null,
-                null
-        );
-
-        if (cursor != null && cursor.moveToFirst()) {
-
-        } else {
-
-            ContentValues nameVal = new ContentValues();
-            nameVal.put(CurrencyContract.CurrencyName.CURRENCY_SYMBOL, currencySymbol);
-            nameVal.put(CurrencyContract.CurrencyName.CURRENCY_NAME, currencyName);
-
-            mContext.getContentResolver().insert(CurrencyContract.CurrencyName.CONTENT_URI, nameVal);
+    public static void getCurrencySymbol(JSONObject symbol, Context context){
+        try {
+            JSONObject quo = symbol.getJSONObject(KEY_CURRENCY_SYMBOL);
+            String timeStamp = symbol.getString(KEY_CURRENCY_TIMESTAMP);
+            if ((quo == null) && (timeStamp ==null)){
+                return;
+            }
+            ArrayList<ContentProviderOperation> operations = parseCurrencyQuotes(quo, timeStamp);
+            if (operations.size() > 0){
+                ContentResolver resolver =  context.getContentResolver();
+                resolver.applyBatch(CurrencyContract.CONTENT_AUTHORITY, operations);
+            }
+        } catch (JSONException | RemoteException | OperationApplicationException e) {
+            e.printStackTrace();
+        }
+        if (mDialog != null && mDialog.isShowing()){
+            mDialog.dismiss();
         }
 
-        if (cursor != null){
-            cursor.close();
-        }
+        Toast.makeText(mContext, "Rates Successfully Updated after parse", Toast.LENGTH_LONG).show();
     }
 
-    private static void insertCurrencyInDatabase(String symbol, String code, String baseCurrencySymbol, String baseRate, String inverseRate) {
-        long rowId = 0;
+    private static ArrayList<ContentProviderOperation> parseCurrencyQuotes (JSONObject quo, String timeStamp){
+        final ArrayList<ContentProviderOperation> batch = Lists.newArrayList();
+        try {
+            for (int i = 0; i < quo.length(); i++) {
+                JSONArray mObject = quo.names();
+                String rawSymbol = mObject.getString(i);
+                String currencySymbol = rawSymbol.substring(rawSymbol.length() - 3);
+                String baseCurrencySymbol = rawSymbol.substring(0, 3);
+                String rawRate = quo.getString(rawSymbol);
+                String currencyRate = String.valueOf(DataUtils.formatCurrencyDp(rawRate));
+                final String currencyCode = rawSymbol.substring(3, 5);
+                String inverseValue = String.valueOf(DataUtils.invertedRate(rawRate));
 
-        // First check if the location with this city name exists in the db
-        Cursor cursor = mContext.getContentResolver().query(
-                CurrencyContract.Currency.CONTENT_URI,
-                new String[] {CurrencyContract.Currency._ID},
-                CurrencyContract.Currency.CURRENCY_SYMBOL + " = ?",
-                new String[] {symbol},
-                null,
-                null
-        );
-
-        if (cursor != null && cursor.moveToFirst()) {
-
-            mContext.getContentResolver().delete(CurrencyContract.Currency.CONTENT_URI, null, null);
-         /*   int locationIdIndex =  cursor.getColumnIndex(LocationEntry._ID);
-            rowId = cursor.getLong(locationIdIndex);*/
-
-
-            ContentValues currValues = new ContentValues();
-            currValues.put(CurrencyContract.Currency.BASE_CURRENCY_SYMBOL, baseCurrencySymbol);
-            currValues.put(CurrencyContract.Currency.CURRENCY_SYMBOL, symbol);
-            currValues.put(CurrencyContract.Currency.CURRENCY_CODE, code);
-            currValues.put(CurrencyContract.Currency.BASE_RATE, baseRate);
-            currValues.put(CurrencyContract.Currency.INVERTED_RATE, inverseRate);
-
-            mContext.getContentResolver().insert(CurrencyContract.Currency.CONTENT_URI, currValues);
-
-        } else {
-
-            ContentValues currValues = new ContentValues();
-            currValues.put(CurrencyContract.Currency.BASE_CURRENCY_SYMBOL, baseCurrencySymbol);
-            currValues.put(CurrencyContract.Currency.CURRENCY_SYMBOL, symbol);
-            currValues.put(CurrencyContract.Currency.CURRENCY_CODE, code);
-            currValues.put(CurrencyContract.Currency.BASE_RATE, baseRate);
-            currValues.put(CurrencyContract.Currency.INVERTED_RATE, inverseRate);
-
-            mContext.getContentResolver().insert(CurrencyContract.Currency.CONTENT_URI, currValues);
-//            rowId = ContentUris.parseId(uri);
-
+                Uri uri = CurrencyContract.addCallerIsSyncAdapterParameter(CurrencyContract.Currency.CONTENT_URI);
+                ContentProviderOperation.Builder builder = ContentProviderOperation
+                        .newInsert(uri)
+                        .withValue(CurrencyContract.Currency.BASE_CURRENCY_SYMBOL, baseCurrencySymbol)
+                        .withValue(CurrencyContract.Currency.CURRENCY_SYMBOL, currencySymbol)
+                        .withValue(CurrencyContract.Currency.CURRENCY_CODE, currencyCode)
+                        .withValue(CurrencyContract.Currency.BASE_RATE, currencyRate)
+                        .withValue(CurrencyContract.Currency.INVERTED_RATE, inverseValue)
+                        .withValue(CurrencyContract.Currency.TIME_STAMP, timeStamp);
+                batch.add(builder.build());
+                }
+        } catch (Exception e){
+            e.printStackTrace();
         }
 
-        if (cursor != null) {
-            cursor.close();
-        }
-//        return rowId;
+        return batch;
     }
 
-    public static double invertedRate (String base){
-//        int inv = Integer.parseInt(base);
-        double db = Double.parseDouble(base);
-        double inv = (1/db);
-        DecimalFormat threeDp = new DecimalFormat("#.000");
-
-        return Double.parseDouble(threeDp.format(inv));
+    public static void fetchTimeForTv (Context context, TextView tv){
+        Cursor c = context.getContentResolver().query(CurrencyContract.Currency.CONTENT_URI,
+                new String[] {CurrencyContract.Currency.TIME_STAMP}, null, null,null);
+//        assert c != null;
+        String ff = null;
+        if (c != null) {
+            c.moveToLast();
+            long timeBase = Long.parseLong(c.getString(c.getColumnIndex(CurrencyContract.Currency.TIME_STAMP)));
+            Log.e(TAG, "Returned time Stamp " + timeBase);
+            ff = FormatUtils.getReadableDate(timeBase);
+            tv.setText(ff);
+        } c.close();
+//        return ff;
     }
 
-    private static double formatCurrencyDp (String rate){
-        double mRate = Double.parseDouble(rate);
-        DecimalFormat fiveDp = new DecimalFormat("#.000");
-        return Double.parseDouble(fiveDp.format(mRate));
-    }
 }

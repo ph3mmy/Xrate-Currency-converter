@@ -51,7 +51,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             + CurrencyContract.Currency.BASE_CURRENCY_SYMBOL + " VARCHAR NOT NULL, "
             + CurrencyContract.Currency.CURRENCY_CODE + " VARCHAR NOT NULL, "
             + CurrencyContract.Currency.BASE_RATE + " VARCHAR NOT NULL, "
-            + CurrencyContract.Currency.INVERTED_RATE + " VARCHAR NOT NULL"
+            + CurrencyContract.Currency.INVERTED_RATE + " VARCHAR NOT NULL, "
+            + CurrencyContract.Currency.TIME_STAMP + " VARCHAR NOT NULL "
             + ")";
 
     final static String SQL_CREATE_CURRENCY_NAME_TABLE = "CREATE TABLE "

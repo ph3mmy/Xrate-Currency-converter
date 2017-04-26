@@ -1,23 +1,57 @@
 package com.jcedar.xratecurrencyconverter.fragment;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
+import android.content.ContentProviderOperation;
+import android.content.ContentResolver;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.OperationApplicationException;
+import android.content.SharedPreferences;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.RemoteException;
+import android.preference.PreferenceManager;
+import android.provider.Settings;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
+import android.support.v7.app.AlertDialog;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.Spinner;
+import android.widget.Toast;
 
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.RequestFuture;
 import com.jcedar.xratecurrencyconverter.R;
 import com.jcedar.xratecurrencyconverter.adapter.ConverterSpinnerAdapter;
 import com.jcedar.xratecurrencyconverter.adapter.RateListAdapter;
+import com.jcedar.xratecurrencyconverter.helper.AppSingleton;
+import com.jcedar.xratecurrencyconverter.helper.DataUtils;
+import com.jcedar.xratecurrencyconverter.helper.Lists;
 import com.jcedar.xratecurrencyconverter.model.CurrencyModel;
+import com.jcedar.xratecurrencyconverter.provider.CurrencyContract;
+import com.jcedar.xratecurrencyconverter.ui.MainActivity;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -111,6 +145,7 @@ public class ConvertFragment extends Fragment {
             currencyModelList.add(currencyModel);
         }
         currencySpinner.setAdapter(spinnerAdapter);
+
         return view;
     }
 
@@ -152,5 +187,11 @@ public class ConvertFragment extends Fragment {
         // TODO: Update argument type and name
         public void onFragmentInteraction(Uri uri);
     }
+
+
+
+
+
+
 
 }

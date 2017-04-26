@@ -3,6 +3,7 @@ package com.jcedar.xratecurrencyconverter.provider;
 import android.content.ContentResolver;
 import android.net.Uri;
 import android.provider.BaseColumns;
+import android.text.TextUtils;
 
 import java.util.List;
 
@@ -20,6 +21,7 @@ public class CurrencyContract {
     //path or table names
     public static final String PATH_CURRENCY = "currency";
     public static final String PATH_CURRENCY_NAME = "currency_name";
+    private static final String CALLER_IS_SYNCADAPTER = "caller_is_sync_adapter";
 //    public static final String PATH_SEARCH = "search";
 
 
@@ -45,7 +47,7 @@ public class CurrencyContract {
 
         /** A projection of all tables in students table */
         public static final String[] PROJECTION_ALL = {
-                _ID,  CURRENCY_SYMBOL, CURRENCY_CODE, BASE_CURRENCY_SYMBOL, BASE_RATE, INVERTED_RATE
+                _ID,  CURRENCY_SYMBOL, CURRENCY_CODE, BASE_CURRENCY_SYMBOL, BASE_RATE, INVERTED_RATE, TIME_STAMP
                 //, UPDATED
 
         };
@@ -96,6 +98,7 @@ public class CurrencyContract {
         String CURRENCY_CODE = "currency_code";
         String BASE_RATE = "base_rate";
         String INVERTED_RATE = "inverted_rate";
+        String TIME_STAMP = "time_stamp";
     }
 
     interface CurrencyNamesColumns {
@@ -103,5 +106,14 @@ public class CurrencyContract {
         String CURRENCY_NAME = "currency_name";
     }
 
+    public static Uri addCallerIsSyncAdapterParameter(Uri uri) {
+        return uri.buildUpon().appendQueryParameter(
+                CurrencyContract.CALLER_IS_SYNCADAPTER, "true").build();
+    }
+
+    public static boolean hasCallerIsSyncAdapterParameter(Uri uri) {
+        return TextUtils.equals("true",
+                uri.getQueryParameter(CurrencyContract.CALLER_IS_SYNCADAPTER));
+    }
 
 }

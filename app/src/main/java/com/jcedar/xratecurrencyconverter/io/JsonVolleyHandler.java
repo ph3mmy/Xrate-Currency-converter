@@ -1,26 +1,19 @@
 package com.jcedar.xratecurrencyconverter.io;
 
-import android.app.ProgressDialog;
 import android.content.Context;
-import android.net.Uri;
-import android.os.Handler;
 import android.util.Log;
 import android.widget.Toast;
 
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.ImageLoader;
-import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.JsonObjectRequest;
-import com.jcedar.xratecurrencyconverter.adapter.RateListAdapter;
-import com.jcedar.xratecurrencyconverter.fragment.RateFragment;
 import com.jcedar.xratecurrencyconverter.helper.AppSingleton;
 import com.jcedar.xratecurrencyconverter.model.CurrencyModel;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.json.JSONStringer;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -134,7 +127,7 @@ public class JsonVolleyHandler {
         /*
          currencyName = new String[symbol.length()];*/
 
-          final RateListAdapter mAdapter = RateFragment.adapter;
+//          final RateListAdapter mAdapter = RateFragment.adapter;
 
 
         try {
